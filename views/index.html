@@ -1,0 +1,123 @@
+
+ <html>
+ <head><title>Simple hello world</title></head>
+ <body>
+ <h1>Stream Test</h1>
+ <script src="https://apis.google.com/js/api.js"></script>
+ <label for="name">Enter playlist Id:</label>
+ <input type="text" id="name" name="name">
+ <button onclick="loadClient()">load</button>
+ <input type="range" id="wombfilter" min="20" max="20000" value="20000" class="slider" id="myRange">
+  <label for="name">Womb Filter</label>
+ <script>
+   var length = 50;
+   var id = [];
+   var names = [];
+   let textbox = document.getElementById('name');
+   let filter = document.getElementById('wombfilter');
+   window.AudioContext = window.AudioContext||window.webkitAudioContext;
+context = new AudioContext();
+context.suspend();
+var filt = new BiquadFilterNode(context);
+filt.type = "lowpass";
+filter.oninput = function() {
+  filt.frequency.value = filter.value;
+}
+
+
+function loadSound(url) {
+  var request = new XMLHttpRequest();
+  const videoUrl = 'http://localhost:7000/stream/' + url;
+  request.open("GET", videoUrl, true);
+  request.responseType = "arraybuffer";
+  request.onload = function() {
+      var Data = request.response;
+      process(Data);
+  };
+  request.send();
+  const element = id.indexOf(url);
+  for(i = 0; i<length; i++)
+  {
+    let btn = document.getElementById(i)
+    btn.disabled = true;
+    if(i == element)
+    {
+      btn.disabled = false;
+      btn.innerhtml = "stop"
+    }
+  }
+}
+
+
+function process(Data) {
+  context.resume();
+  source = context.createBufferSource(); // Create Sound Source
+  gain = context.createGain();
+  gain.gain.value = 0.2;
+  context.decodeAudioData(Data, function(buffer){
+    source.buffer = buffer;
+    source.connect(gain)
+    gain.connect(filt)
+    filt.connect(context.destination);
+    source.start(context.currentTime);
+})
+}
+
+
+  /**
+   * Sample JavaScript code for youtube.playlists.list
+   * See instructions for running APIs Explorer code samples locally:
+   * https://developers.google.com/explorer-help/guides/code_samples#javascript
+   */
+
+  function loadClient() {
+    gapi.client.setApiKey("AIzaSyDw8aUG0ObSTDnAw6czUaz6QEL2mQ-hom8");
+    return gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
+        .then(function() { console.log("GAPI client loaded for API"); },
+              function(err) { console.error("Error loading GAPI client for API", err); })
+              .then(function(){execute()});
+  }
+  // Make sure the client is loaded before calling this method.
+  function execute() {
+    let playlistId = textbox.value;
+    return gapi.client.youtube.playlistItems.list({
+      "part": [
+        "snippet,contentDetails"
+      ],
+      "playlistId": playlistId,
+      "maxResults": 100
+    })
+        .then(function(response) {
+            console.log(response)
+                length = response.result.items.length;
+                console.log(length)
+                var table = document.createElement('table');
+                // Handle the results here (response.result has the parsed body).
+                for(i = 0; i<length; i++)
+                {
+                  id[i] = response.result.items[i].contentDetails.videoId
+                  names[i] = response.result.items[i].snippet.title
+                  var tr = document.createElement('tr');
+                  var td1 = document.createElement('td');
+                  var td2 = document.createElement('td');
+                  var text1 = document.createTextNode(names[i]);
+                  var text2 = document.createElement("BUTTON");
+                  text2.appendChild(document.createTextNode("Play"));
+                  text2.id = i;
+                  text2.id2 = names[i];
+                  text2.addEventListener('click', function(){loadSound(id[this.id])});
+                  td1.appendChild(text1);
+                  td2.appendChild(text2);
+                  tr.appendChild(td1);
+                  tr.appendChild(td2);
+                  table.appendChild(tr);
+                }
+                document.body.appendChild(table);
+              },
+              function(err) { console.error("Execute error", err); });
+  }
+  gapi.load("client");
+
+</script>
+</body>
+</html>

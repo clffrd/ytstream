@@ -1,0 +1,21 @@
+{
+  "name": "input",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "googleapis": "^84.0.0",
+    "youtube-audio-stream": "^0.3.10",
+    "youtube-playlist": "^1.0.4",
+    "ytdl-core": "^4.9.1"
+  }
+}
